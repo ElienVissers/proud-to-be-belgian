@@ -1,0 +1,99 @@
+body {
+    background-color: #FFC739;
+    margin: 0;
+    font-family: "Helvetica Neue";
+}
+
+header {
+    display: flex;
+    width: 100%;
+}
+
+header div {
+    height: 50px;
+    width: 33.33%;
+}
+
+header div p {
+    color: #FFC739;
+    font-weight: bold;
+    text-align: center;
+}
+
+header div img {
+    float: right;
+    margin-right: 50px;
+    width: 15%;
+    height: auto;
+}
+
+header .black {
+    background-color: black;
+}
+
+header .yellow {
+    background-color: #E8E128;
+}
+
+header .red {
+    background-color: #FF3A2C;
+}
+
+h1 {
+    text-decoration: underline;
+    text-decoration-color: #FF3A2C;
+}
+
+.mainContent {
+    text-align: center;
+    width: 60%;
+    margin: 0 auto;
+    position: relative;
+    top: 50px;
+}
+
+.mainContent p {
+    text-align: justify;
+    text-align-last: center;
+}
+
+.mainContent a {
+    color: black;
+}
+
+.mainContent form {
+    position: relative;
+    top: 50px;
+}
+
+.mainContent input {
+    border: 1px solid #FF3A2C;
+}
+
+input::placeholder {
+    text-align: center;
+}
+
+.mainContent canvas {
+    border: 1px dotted #FF3A2C;
+    position: relative;
+    top: 20px;
+    width: 340px;
+    height: 70px;
+}
+
+.mainContent .signButton {
+    position: relative;
+    top: 30px;
+    font-size: 1.3rem;
+    background-color: #E87928;
+    border: 1px solid #FF3A2C;
+    width: 150px;
+    height: auto;
+}
+
+.error {
+    color: #FF3A2C;
+    position: relative;
+    top: 20px;
+}
