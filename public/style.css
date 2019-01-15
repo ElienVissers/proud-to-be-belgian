@@ -123,7 +123,7 @@ input::placeholder {
     height: 70px;
 }
 
-.mainContent .signButton {
+.mainContent .submitButton {
     position: relative;
     top: 30px;
     font-size: 1.3rem;

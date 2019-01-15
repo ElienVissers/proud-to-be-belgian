@@ -1,0 +1,16 @@
+<h1>Save Belgian Fries!</h1>
+<h2>Please log in to gain access to our petition.</h2>
+
+<p>If you would like to register, please do so <a href="/register">here</a>.</p>
+
+{{#if error}}
+    <div class="error">Oops, something went wrong! Please try again.</div>
+{{/if}}
+
+<form method="post">
+    <input name="email" placeholder="email address">
+    <input name="password" placeholder="password">
+    <input name="_csrf" type="hidden" value="{{csrfToken}}">
+    <br>
+    <button class="submitButton">LOG IN</button>
+</form>

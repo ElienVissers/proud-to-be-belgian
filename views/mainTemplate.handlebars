@@ -8,11 +8,10 @@
 {{/if}}
 
 <form method="post">
-    <input name="first" placeholder="First name">
-    <input name="last" placeholder="Last name">
     <input name="sig" id="sig" type="hidden">
+    <input name="_csrf" type="hidden" value="{{csrfToken}}"> <!--to protect against csrf attacks, have a hidden input with this name+value in EACH form-->
     <br>
     <canvas id="canvas" width="340" height="70"></canvas>
     <br>
-    <button class="signButton">sign here</button>
+    <button class="submitButton">sign here</button>
 </form>

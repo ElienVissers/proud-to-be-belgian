@@ -1,0 +1,17 @@
+<h1>Save Belgian Fries!</h1>
+<h2>Please register here to gain access to our petition.</h2>
+<p>Register with your full name, email address and a password. Don't worry, your data will be encrypted and only used for our website. If you already registered, please <a href="/login">login</a>.</p>
+
+{{#if error}}
+    <div class="error">Oops, something went wrong! Please try again. If you registered already, please <a href="/login">login</a>.</div>
+{{/if}}
+
+<form method="post">
+    <input name="first" placeholder="first name">
+    <input name="last" placeholder="last name">
+    <input name="email" placeholder="email address">
+    <input name="password" placeholder="password">
+    <input name="_csrf" type="hidden" value="{{csrfToken}}">
+    <br>
+    <button class="submitButton">REGISTER</button>
+</form>
