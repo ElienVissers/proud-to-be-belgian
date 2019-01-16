@@ -1,5 +1,9 @@
-<h1>#BelgianFriesArmy</h1>
+<h1>#BelgianFriesArmy{{titleCity}}</h1>
 <br>
 {{# signers}}<ul>
+    {{#if url}}
+    <li><a href="{{url}}">{{first}} {{last}}</a></li>
+    {{else}}
     <li>{{first}} {{last}}</li>
+    {{/if}} {{age}} {{#city}}<a href="/signers/{{.}}">{{.}}</a>{{/city}}
 </ul>{{/signers}}

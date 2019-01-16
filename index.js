@@ -46,12 +46,29 @@ app.post('/register', requireLoggedOutUser, (req, res) => {
         req.session.userId = rows[0].id;
         req.session.first = rows[0].first;
         req.session.last = rows[0].last;
-        res.redirect('/petition');
+        res.redirect('/profile');
     }).catch(function(err) {
         res.render('registerTemplate', {
             error: true,
             layout: 'main'
         });
+    });
+});
+
+//Before you put the url a user specifies into the href attribute of a link, you must make sure that it begins with either "http://" or "https://" or "//"
+//OR make them not being able to post if incorrect
+//OR when you pull them out of database, discard or edit the wrong ones
+//not sure where in the code all of this should happen though, not necessarily here
+app.get('/profile', (req, res) => {
+    res.render('profileTemplate', {
+        layout: 'main',
+        name: req.session.first
+    });
+});
+
+app.post('/profile', (req, res) => {
+    db.registerProfile(req.body.age, req.body.city, req.body.homepage, req.session.userId).then(() => {
+        res.redirect('/petition');
     });
 });
 
@@ -62,28 +79,18 @@ app.get('/login', requireLoggedOutUser, (req, res) => {
 });
 
 app.post('/login', requireLoggedOutUser, (req, res) => {
-/*LOGIN also do another query to get the sig id to know if they signed */
-    let user;
     db.getUserInfo(req.body.email).then(dbInfo => {
-        user = {
-            id: dbInfo.rows[0].id,
-            first: dbInfo.rows[0].first,
-            last: dbInfo.rows[0].last,
-            email: dbInfo.rows[0].email,
-            password: dbInfo.rows[0].password
+        console.log("dbInfo: ", dbInfo);
+        req.session.userId = dbInfo.rows[0].id;
+        req.session.first = dbInfo.rows[0].first;
+        req.session.last = dbInfo.rows[0].last;
+        if (dbInfo.rows[0].sig_id) {
+            req.session.signatureId = dbInfo.rows[0].sig_id;
         }
-        if (user.password) {
-            return bcrypt.compare(req.body.password, user.password);
-        }
+        if (dbInfo.rows[0].password) {
+            return bcrypt.compare(req.body.password, dbInfo.rows[0].password);
+        } //if not, they need to register first
     }).then(() => {
-        return db.getSigId(user.id);
-    }).then(({rows}) => {
-        req.session.userId = user.id;
-        req.session.first = user.first;
-        req.session.last = user.last;
-        if (rows[0]) {
-            req.session.signatureId = rows[0].id;
-        }
         res.redirect('/petition');
     }).catch(function(err) {
         console.log(err);
@@ -92,7 +99,7 @@ app.post('/login', requireLoggedOutUser, (req, res) => {
             layout: 'main'
         });
     });
-})
+});
 
 app.get('/petition', requireNoSignature, (req, res) => {
     res.render('mainTemplate', {
@@ -101,12 +108,12 @@ app.get('/petition', requireNoSignature, (req, res) => {
 });
 
 app.post('/petition', requireNoSignature, (req, res) => {
-    db.addSignature(req.session.first, req.session.last, req.body.sig, req.session.userId).then(function({rows}) {
+    db.addSignature(req.body.sig, req.session.userId).then(function({rows}) {
         req.session.signatureId = rows[0].id;
         res.redirect('/thankyou');
     }).catch(function(err) {
         console.log(err);
-         res.render('mainTemplate', {
+        res.render('mainTemplate', {
             error: true,
             layout: 'main'
         });
@@ -115,7 +122,6 @@ app.post('/petition', requireNoSignature, (req, res) => {
 
 app.get('/thankyou', requireSignature, (req, res) => {
     db.getSignature(req.session.signatureId).then(function(sig) {
-        console.log("then: ", sig);
         res.render('thankyouTemplate', {
             signature: sig.rows[0].sig,
             layout: 'main'
@@ -130,6 +136,17 @@ app.get('/signers', requireSignature, (req, res) => {
         res.render('signersTemplate', {
             signers: signers.rows,
             layout: 'main'
+        });
+    });
+});
+
+app.get('/signers/:city', requireSignature, (req, res) => {
+    const city = req.params.city;
+    db.getSignersCity(city).then(function(signers) {
+        res.render('signersTemplate', {
+            layout: 'main',
+            signers: signers.rows,
+            titleCity: city
         });
     });
 });
