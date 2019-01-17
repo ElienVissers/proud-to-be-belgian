@@ -5,5 +5,5 @@ CREATE TABLE user_profiles(
     age INTEGER,
     city VARCHAR(100),
     url VARCHAR(400),
-    user_id INTEGER REFERENCES users(id) NOT NULL
+    user_id INTEGER REFERENCES users(id) NOT NULL UNIQUE
 );

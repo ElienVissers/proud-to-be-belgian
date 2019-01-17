@@ -3,9 +3,11 @@ const hb = require('express-handlebars');
 const app = express();
 const db = require('./db');
 const bcrypt = require('./bcrypt');
+const security = require('./security');
 const cookieSession = require('cookie-session');
 const csurf = require('csurf');
-const {requireLoggedOutUser, requireSignature, requireNoSignature} = require('./middleware')
+const {requireLoggedOutUser, requireSignature, requireNoSignature} = require('./middleware');
+
 
 app.engine('handlebars', hb());
 app.set('view engine', 'handlebars');
@@ -55,10 +57,6 @@ app.post('/register', requireLoggedOutUser, (req, res) => {
     });
 });
 
-//Before you put the url a user specifies into the href attribute of a link, you must make sure that it begins with either "http://" or "https://" or "//"
-//OR make them not being able to post if incorrect
-//OR when you pull them out of database, discard or edit the wrong ones
-//not sure where in the code all of this should happen though, not necessarily here
 app.get('/profile', (req, res) => {
     res.render('profileTemplate', {
         layout: 'main',
@@ -67,8 +65,74 @@ app.get('/profile', (req, res) => {
 });
 
 app.post('/profile', (req, res) => {
-    db.registerProfile(req.body.age, req.body.city, req.body.homepage, req.session.userId).then(() => {
+    security.checkUrl(req.body.homepage).then(url => {
+        db.updateProfile(req.body.age, req.body.city, url, req.session.userId)
+    }).then(() => {
         res.redirect('/petition');
+    }).catch(err => {
+        res.render('profileTemplate', {
+            error: true,
+            name: req.session.first,
+            layout: 'main'
+        });
+    });
+});
+
+app.get('/profile/edit', (req, res) => {
+    db.getProfileInfo(req.session.userId).then(dbInfo => {
+        res.render('profileEditTemplate', {
+            layout: 'main',
+            first: dbInfo.rows[0].first,
+            last: dbInfo.rows[0].last,
+            email: dbInfo.rows[0].email,
+            age: dbInfo.rows[0].age || null,
+            city: dbInfo.rows[0].city || null,
+            homepage: dbInfo.rows[0].url || null
+        });
+    });
+});
+
+app.post('/profile/edit', (req, res) => {
+    var url;
+    function errorDisplay(err) {
+        db.getProfileInfo(req.session.userId).then(dbInfo => {
+            res.render('profileEditTemplate', {
+                layout: 'main',
+                first: dbInfo.rows[0].first,
+                last: dbInfo.rows[0].last,
+                email: dbInfo.rows[0].email,
+                age: dbInfo.rows[0].age || null,
+                city: dbInfo.rows[0].city || null,
+                homepage: dbInfo.rows[0].url || null,
+                error: true
+            });
+        });
+    }
+    security.checkUrl(req.body.homepage).then(resultUrl => {
+        url = resultUrl;
+        if (req.body.password !== '') {
+            bcrypt.hash(req.body.password).then(hashedPassword => {
+                Promise.all([
+                    db.updateUserWithPassword(req.body.first, req.body.last, req.body.email, hashedPassword, req.session.userId),
+                    db.updateProfile(req.body.age, req.body.city, url, req.session.userId)
+                ]).then(() => {
+                    res.redirect('/petition')
+                }).catch(err => {
+                    errorDisplay(err);
+                });
+            });
+        } else {
+            Promise.all([
+                db.updateUserWithoutPassword(req.body.first, req.body.last, req.body.email, req.session.userId),
+                db.updateProfile(req.body.age, req.body.city, url, req.session.userId)
+            ]).then(() => {
+                res.redirect('/petition')
+            }).catch(err => {
+                errorDisplay(err);
+            });
+        }
+    }).catch(err => {
+        errorDisplay(err);
     });
 });
 
@@ -80,7 +144,6 @@ app.get('/login', requireLoggedOutUser, (req, res) => {
 
 app.post('/login', requireLoggedOutUser, (req, res) => {
     db.getUserInfo(req.body.email).then(dbInfo => {
-        console.log("dbInfo: ", dbInfo);
         req.session.userId = dbInfo.rows[0].id;
         req.session.first = dbInfo.rows[0].first;
         req.session.last = dbInfo.rows[0].last;
@@ -129,6 +192,16 @@ app.get('/thankyou', requireSignature, (req, res) => {
     }).catch(function(err) {
         console.log(err);
     });
+});
+
+app.post('/thankyou', (req, res) => {
+    db.removeSignature(req.session.userId).then(() => {
+        req.session.signatureId = null;
+    }).then(() => {
+        res.redirect('/petition');
+    }).catch(err => {
+        console.log("error when removing signature: ", err);
+    })
 });
 
 app.get('/signers', requireSignature, (req, res) => {

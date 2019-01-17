@@ -5,3 +5,8 @@
 <img class="signatureImg" src="{{signature}}">
 <p><a href="/signers">see all signers</a></p>
 <p>Please share our purpose with your friends, using #MakeFriesBelgianAgain !</p>
+<br>
+<form method="post">
+    <button class="submitButton" id="remove">remove signature</button>
+    <input name="_csrf" type="hidden" value="{{csrfToken}}">
+</form>

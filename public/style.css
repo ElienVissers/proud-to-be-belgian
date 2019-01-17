@@ -20,24 +20,28 @@ header div p {
     text-align: center;
 }
 
-.logoutImg {
+.logoutImg, .editImg {
     margin: 0;
-    width: 55%;
-    top: 6px;
-    left: 10px;
+    height: 75%;
+    width: auto;
+    top: 7px;
+}
+
+#logoutButton, #editButton {
+    margin: 0;
+    display: inline-block;
+    cursor: pointer;
+    right: 100px;
 }
 
 #logoutButton {
-    margin: 0;
-    cursor: pointer;
+    margin-right: 40px;
 }
 
-#logoutButton .infotext {
+.infotext {
     position: absolute;
     top: 10px;
-    right: 150px;
-    float: right;
-    z-index: 1;
+    right: 100%;
     visibility: hidden;
     width: 120px;
     color: #FFC739;
@@ -46,21 +50,21 @@ header div p {
     padding: 5px 0;
 }
 
-#logoutButton:hover .infotext {
+#logoutButton:hover .infotext, #editButton:hover .infotext {
     visibility: visible;
 }
 
 header div .rightIcons {
+    position: relative;
     float: right;
 }
 
 header div img {
     float: right;
     position: relative;
-    left: -20px;
-    top: -50px;
-    width: 47%;
-    height: auto;
+    top: 7px;
+    width: auto;
+    height: 150%;
 }
 
 header .black {
@@ -133,6 +137,10 @@ input::placeholder {
     height: auto;
 }
 
+#remove {
+    font-size: 1rem;
+}
+
 .error {
     color: #FF3A2C;
     position: relative;
@@ -141,4 +149,9 @@ input::placeholder {
 
 .signatureImg {
     margin: 30px;
+}
+
+.editInput {
+    display: block;
+    margin: 20px auto;
 }

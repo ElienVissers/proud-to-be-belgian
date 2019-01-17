@@ -1,6 +1,10 @@
 <h1>Hi, {{name}}!</h1>
 <h2>Please tell us a bit more about yourself before you continue to the petition.</h2>
 
+{{#if error}}
+    <div class="error">Please insert a valid link to your homepage.</div>
+{{/if}}
+
 <form method="post">
     <input name="age" placeholder="age (optional)">
     <input name="city" placeholder="city (optional)">

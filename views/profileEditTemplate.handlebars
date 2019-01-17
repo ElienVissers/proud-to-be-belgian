@@ -1,0 +1,19 @@
+<h1>Hi, {{first}}!</h1>
+<h2>Feel free to update your personal info below.</h2>
+
+{{#if error}}
+    <div class="error">Oops, something went wrong! Please try again.</div>
+{{/if}}
+
+<form method="post">
+    <input class="editInput" name="first" placeholder="first name" value="{{first}}">
+    <input class="editInput" name="last" placeholder="last name" value="{{last}}">
+    <input class="editInput" name="email" placeholder="email address" value="{{email}}">
+    <input class="editInput" name="password" placeholder="new password (optional)">
+    <input class="editInput" name="age" placeholder="age (optional)" value="{{age}}">
+    <input class="editInput" name="city" placeholder="city (optional)" value="{{city}}">
+    <input class="editInput" name="homepage" placeholder="homepage (optional)" value="{{homepage}}">
+    <input name="_csrf" type="hidden" value="{{csrfToken}}">
+    <br>
+    <button class="submitButton">UPDATE</button>
+</form>
