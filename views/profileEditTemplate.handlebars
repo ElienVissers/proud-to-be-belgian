@@ -17,3 +17,8 @@
     <br>
     <button class="submitButton">UPDATE</button>
 </form>
+<br>
+<form method="post" action="/delete">
+    <button class="submitButton" id="delete">delete profile</button>
+    <input name="_csrf" type="hidden" value="{{csrfToken}}">
+</form>

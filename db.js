@@ -130,3 +130,27 @@ module.exports.updateProfile = function(age, city, homepage, user_id) {
         [age ? Number(age) : null || null, city || null, homepage || null, user_id]
     );
 }
+
+module.exports.deleteSignatureRow = function(user_id) {
+    return db.query(
+        `DELETE FROM signatures
+        WHERE user_id = $1`,
+        [user_id]
+    );
+}
+
+module.exports.deleteProfileRow = function(user_id) {
+    return db.query(
+        `DELETE FROM user_profiles
+        WHERE user_id = $1`,
+        [user_id]
+    );
+}
+
+module.exports.deleteUserRow = function(user_id) {
+    return db.query(
+        `DELETE FROM users
+        WHERE id = $1`,
+        [user_id]
+    );
+}

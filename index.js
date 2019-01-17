@@ -78,6 +78,27 @@ app.post('/profile', (req, res) => {
     });
 });
 
+app.post('/delete', (req,res) => {
+    db.deleteSignatureRow(req.session.userId).then(() => {
+        db.deleteProfileRow(req.session.userId);
+    }).then(() => {
+        db.deleteUserRow(req.session.userId);
+    }).then(() => {
+        res.redirect('/bye');
+    }).catch(err => {
+        console.log("error in delete: ", err);
+    });
+});
+
+app.get('/bye', (req, res) => {
+    const name = req.session.first;
+    req.session = null;
+    res.render('byeTemplate', {
+        name: name,
+        layout: 'main'
+    });
+});
+
 app.get('/profile/edit', (req, res) => {
     db.getProfileInfo(req.session.userId).then(dbInfo => {
         res.render('profileEditTemplate', {
@@ -95,6 +116,7 @@ app.get('/profile/edit', (req, res) => {
 app.post('/profile/edit', (req, res) => {
     var url;
     function errorDisplay(err) {
+        console.log("error: ", err);
         db.getProfileInfo(req.session.userId).then(dbInfo => {
             res.render('profileEditTemplate', {
                 layout: 'main',
@@ -116,6 +138,8 @@ app.post('/profile/edit', (req, res) => {
                     db.updateUserWithPassword(req.body.first, req.body.last, req.body.email, hashedPassword, req.session.userId),
                     db.updateProfile(req.body.age, req.body.city, url, req.session.userId)
                 ]).then(() => {
+                    req.session.first = req.body.first;
+                    req.session.last = req.body.last;
                     res.redirect('/petition')
                 }).catch(err => {
                     errorDisplay(err);
@@ -126,6 +150,8 @@ app.post('/profile/edit', (req, res) => {
                 db.updateUserWithoutPassword(req.body.first, req.body.last, req.body.email, req.session.userId),
                 db.updateProfile(req.body.age, req.body.city, url, req.session.userId)
             ]).then(() => {
+                req.session.first = req.body.first;
+                req.session.last = req.body.last;
                 res.redirect('/petition')
             }).catch(err => {
                 errorDisplay(err);
