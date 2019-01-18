@@ -17,11 +17,28 @@ module.exports.addSignature = function(sig, userId) {
     );
 }
 
-module.exports.removeSignature = function(user_id) {
+module.exports.addSignature2 = function(sig, userId) {
+    return db.query(
+        `INSERT INTO signatures2 (sig, user_id)
+        VALUES ($1, $2)
+        RETURNING id`,
+        [sig, userId]
+    );
+}
+
+module.exports.removeSignature = function(sig_id) {
     return db.query(
         `DELETE FROM signatures
-        WHERE user_id = $1`,
-        [user_id]
+        WHERE id = $1`,
+        [sig_id]
+    );
+}
+
+module.exports.removeSignature2 = function(sig_id) {
+    return db.query(
+        `DELETE FROM signatures2
+        WHERE id = $1`,
+        [sig_id]
     );
 }
 
@@ -49,10 +66,43 @@ module.exports.getSignersCity = function(city) {
     );
 }
 
+module.exports.getSigners2 = function() {
+    return db.query(
+        `SELECT users.first AS first, users.last AS last, user_profiles.age AS age, user_profiles.city AS city, user_profiles.url AS url
+        FROM signatures2
+        LEFT JOIN users
+        ON signatures2.user_id = users.id
+        LEFT JOIN user_profiles
+        ON signatures2.user_id = user_profiles.user_id`
+    );
+}
+
+module.exports.getSignersCity2 = function(city) {
+    return db.query(
+        `SELECT users.first AS first, users.last AS last, user_profiles.age AS age, user_profiles.city AS city, user_profiles.url AS url
+        FROM signatures2
+        LEFT JOIN users
+        ON signatures2.user_id = users.id
+        LEFT JOIN user_profiles
+        ON signatures2.user_id = user_profiles.user_id
+        WHERE LOWER(city) = LOWER($1)`,
+        [city]
+    );
+}
+
 module.exports.getSignature = function(sig_id) {
     return db.query(
         `SELECT sig
         FROM signatures
+        WHERE id = $1`,
+        [sig_id]
+    );
+}
+
+module.exports.getSignature2 = function(sig_id) {
+    return db.query(
+        `SELECT sig
+        FROM signatures2
         WHERE id = $1`,
         [sig_id]
     );

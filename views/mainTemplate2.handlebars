@@ -1,0 +1,17 @@
+<h1>#MakeBeerglassesUsefulAgain</h1>
+<h2>Sign our petition to end worldwide barbarianism!</h2>
+<p>For centuries, Belgians have perfected the art of beer brewing. Worldwide, others have followed trying to copy our master-recipies. Some created delicious craftbeers, some failed horribly. But all neglected the most important element of the belgian beer culture: dedicated beerglasses. The correct beerglass influences the delicate aromas and dictates how to pour the beer. Some beers, such as "kwak", even thank their name to the shape of their glass.</p>
+<p>Sign our petition to stop the usage of standard one-for-all beerglasses! #MakeBeerglassesUsefulAgain</p>
+
+{{#if error}}
+    <div class="error">Oops, something went wrong! Please try again. Make sure you signed in the box below.</div>
+{{/if}}
+
+<form method="post">
+    <input name="sig" id="sig" type="hidden">
+    <input name="_csrf" type="hidden" value="{{csrfToken}}"> <!--to protect against csrf attacks, have a hidden input with this name+value in EACH form-->
+    <br>
+    <canvas id="canvas" width="340" height="70"></canvas>
+    <br>
+    <button class="submitButton">sign here</button>
+</form>

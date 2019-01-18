@@ -6,7 +6,7 @@ const bcrypt = require('./bcrypt');
 const security = require('./security');
 const cookieSession = require('cookie-session');
 const csurf = require('csurf');
-const {requireLoggedOutUser, requireSignature, requireNoSignature} = require('./middleware');
+const {requireLoggedOutUser, requireSignature, requireNoSignature, requireSignature2, requireNoSignature2} = require('./middleware');
 
 
 app.engine('handlebars', hb());
@@ -69,7 +69,7 @@ app.post('/profile', (req, res) => {
     security.checkUrl(req.body.homepage).then(url => {
         db.updateProfile(req.body.age, req.body.city, url, req.session.userId)
     }).then(() => {
-        res.redirect('/petition');
+        res.redirect('/home');
     }).catch(err => {
         res.render('profileTemplate', {
             error: true,
@@ -141,7 +141,7 @@ app.post('/profile/edit', (req, res) => {
                 ]).then(() => {
                     req.session.first = req.body.first;
                     req.session.last = req.body.last;
-                    res.redirect('/petition')
+                    res.redirect('/home')
                 }).catch(err => {
                     errorDisplay(err);
                 });
@@ -153,7 +153,7 @@ app.post('/profile/edit', (req, res) => {
             ]).then(() => {
                 req.session.first = req.body.first;
                 req.session.last = req.body.last;
-                res.redirect('/petition')
+                res.redirect('/home')
             }).catch(err => {
                 errorDisplay(err);
             });
@@ -169,6 +169,7 @@ app.get('/login', requireLoggedOutUser, (req, res) => {
     });
 });
 
+///////////////////////////////////////// TO DO //////////////////////////////////////////////////////// also set cookie for 2nd signature if exists
 app.post('/login', requireLoggedOutUser, (req, res) => {
     db.getUserInfo(req.body.email).then(dbInfo => {
         req.session.userId = dbInfo.rows[0].id;
@@ -181,7 +182,7 @@ app.post('/login', requireLoggedOutUser, (req, res) => {
             return bcrypt.compare(req.body.password, dbInfo.rows[0].password);
         } //if not, they need to register first
     }).then(() => {
-        res.redirect('/petition');
+        res.redirect('/home');
     }).catch(function(err) {
         console.log(err);
         res.render('loginTemplate', {
@@ -190,6 +191,13 @@ app.post('/login', requireLoggedOutUser, (req, res) => {
         });
     });
 });
+
+app.get('/home', (req, res) => {
+    res.render('homeTemplate', {
+        error: true,
+        layout: 'main'
+    });
+})
 
 app.get('/petition', requireNoSignature, (req, res) => {
     res.render('mainTemplate', {
@@ -210,10 +218,32 @@ app.post('/petition', requireNoSignature, (req, res) => {
     });
 });
 
+//////////////////////////////////////////////////////////////////////////////// PETITION 2
+app.get('/petition2', requireNoSignature2, (req, res) => {
+    res.render('mainTemplate2', {
+        layout: 'main'
+    });
+});
+
+app.post('/petition2', requireNoSignature2, (req, res) => {
+    db.addSignature2(req.body.sig, req.session.userId).then(function({rows}) {
+        req.session.signatureId2 = rows[0].id;
+        res.redirect('/thankyou2');
+    }).catch(function(err) {
+        console.log(err);
+        res.render('mainTemplate2', {
+            error: true,
+            layout: 'main'
+        });
+    });
+});
+////////////////////////////////////////////////////////////////////////////////
+
 app.get('/thankyou', requireSignature, (req, res) => {
     db.getSignature(req.session.signatureId).then(function(sig) {
         res.render('thankyouTemplate', {
             signature: sig.rows[0].sig,
+            name: req.session.first,
             layout: 'main'
         });
     }).catch(function(err) {
@@ -222,14 +252,38 @@ app.get('/thankyou', requireSignature, (req, res) => {
 });
 
 app.post('/thankyou', (req, res) => {
-    db.removeSignature(req.session.userId).then(() => {
+    db.removeSignature(req.session.signatureId).then(() => {
         req.session.signatureId = null;
     }).then(() => {
-        res.redirect('/petition');
+        res.redirect('/home');
     }).catch(err => {
         console.log("error when removing signature: ", err);
     })
 });
+
+//////////////////////////////////////////////////////////////////////////////// THANK YOU 2
+app.get('/thankyou2', requireSignature2, (req, res) => {
+    db.getSignature2(req.session.signatureId2).then(function(sig) {
+        res.render('thankyouTemplate2', {
+            signature: sig.rows[0].sig,
+            name: req.session.first,
+            layout: 'main'
+        });
+    }).catch(function(err) {
+        console.log(err);
+    });
+});
+
+app.post('/thankyou2', (req, res) => {
+    db.removeSignature2(req.session.signatureId2).then(() => {
+        req.session.signatureId2 = null;
+    }).then(() => {
+        res.redirect('/home');
+    }).catch(err => {
+        console.log("error when removing signature2: ", err);
+    })
+});
+////////////////////////////////////////////////////////////////////////////////
 
 app.get('/signers', requireSignature, (req, res) => {
     db.getSigners().then(function(signers) {
@@ -250,6 +304,30 @@ app.get('/signers/:city', requireSignature, (req, res) => {
         });
     });
 });
+
+//////////////////////////////////////////////////////////////////////////////// SIGNERS 2
+app.get('/signers2', requireSignature2, (req, res) => {
+    db.getSigners2().then(function(signers) {
+        res.render('signersTemplate2', {
+            signers: signers.rows,
+            layout: 'main'
+        });
+    }).catch(err => {
+        console.log(err);
+    });
+});
+
+app.get('/signers2/:city', requireSignature2, (req, res) => {
+    const city = req.params.city;
+    db.getSignersCity2(city).then(function(signers) {
+        res.render('signersTemplate2', {
+            layout: 'main',
+            signers: signers.rows,
+            titleCity: city
+        });
+    });
+});
+////////////////////////////////////////////////////////////////////////////////
 
 app.get('/logout', (req, res) => {
     req.session = null;

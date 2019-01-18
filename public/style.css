@@ -79,6 +79,14 @@ header .red {
     background-color: #FF3A2C;
 }
 
+#flag:active {
+  transform: translateY(4px);
+}
+
+.ui-dialog {
+    background-color: #FF3A2C;
+}
+
 h1 {
     text-decoration: underline;
     text-decoration-color: #FF3A2C;

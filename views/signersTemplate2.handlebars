@@ -1,0 +1,9 @@
+<h1>#BeerglassArmy{{titleCity}}</h1>
+<br>
+{{# signers}}<ul>
+    {{#if url}}
+    <li><a href="{{url}}">{{first}} {{last}}</a></li>
+    {{else}}
+    <li>{{first}} {{last}}</li>
+    {{/if}} {{age}} {{#city}}<a href="/signers2/{{.}}">{{.}}</a>{{/city}}
+</ul>{{/signers}}
