@@ -50,6 +50,7 @@ app.post('/register', requireLoggedOutUser, (req, res) => {
         req.session.last = rows[0].last;
         res.redirect('/profile');
     }).catch(function(err) {
+        console.log("error in registration: ", err);
         res.render('registerTemplate', {
             error: true,
             layout: 'main'
@@ -255,4 +256,4 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-app.listen(8080, () => console.log('Listening!'));
+app.listen(process.env.PORT || 8080, () => console.log('Listening!'));
