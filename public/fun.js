@@ -21,8 +21,11 @@ flag.click(function() {
     if (mainContent.children().eq(0).hasClass('funFact')) {
         mainContent.children().eq(0).remove();
     }
-    console.log(mainContent.first());
     mainContent.prepend('<div class="funFact">' + funFacts[Math.floor(funFacts.length * Math.random())] + '</div>');
-    //generate random number of arr elements
-    //prepend to .mainContent a div with class .funFact that has as text the random element of the arr
 });
+
+flag.mouseout(function() {
+    if (mainContent.children().eq(0).hasClass('funFact')) {
+        mainContent.children().eq(0).remove();
+    }
+})

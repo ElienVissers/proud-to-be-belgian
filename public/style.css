@@ -4,6 +4,10 @@ body {
     font-family: "Helvetica Neue";
 }
 
+.mainContent {
+    font-size: 1.2rem;
+}
+
 header {
     display: flex;
     width: 100%;
@@ -71,6 +75,13 @@ header .black {
     background-color: black;
 }
 
+header .black a {
+    text-decoration: none;
+    color: #FFC739;
+    font-weight: bold;
+    text-align: center;
+}
+
 header .yellow {
     background-color: #E8E128;
 }
@@ -79,12 +90,20 @@ header .red {
     background-color: #FF3A2C;
 }
 
+#flag {
+    cursor: pointer;
+}
+
 #flag:active {
   transform: translateY(4px);
 }
 
-.ui-dialog {
+.funFact {
     background-color: #FF3A2C;
+    border: 1px solid black;
+    color: black;
+    font-weight: bold;
+    font-size: 1.3rem;
 }
 
 h1 {
