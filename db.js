@@ -1,5 +1,6 @@
 const spicedPg = require('spiced-pg');
 // const db = spicedPg(`postgres:${dbUser}:${dbPassword}@localhost:5432/petition`);
+var db;
 if (process.env.DATABASE_URL) {
     db = spicedPg(process.env.DATABASE_URL);
 } else {
@@ -8,52 +9,24 @@ if (process.env.DATABASE_URL) {
 }
 
 
-module.exports.addSignature = function(sig, userId) {
+module.exports.addSignature = function(sig, userId, petitionId) {
     return db.query(
-        `INSERT INTO signatures (sig, user_id)
-        VALUES ($1, $2)
-        RETURNING id`,
-        [sig, userId]
+        `INSERT INTO signatures (sig, user_id, petition_id)
+        VALUES ($1, $2, $3)
+        RETURNING id, petition_id`,
+        [sig, userId, petitionId]
     );
-}
+};
 
-module.exports.addSignature2 = function(sig, userId) {
-    return db.query(
-        `INSERT INTO signatures2 (sig, user_id)
-        VALUES ($1, $2)
-        RETURNING id`,
-        [sig, userId]
-    );
-}
-
-module.exports.removeSignature = function(sig_id) {
+module.exports.removeSignature = function(sig_id, pet_id) {
     return db.query(
         `DELETE FROM signatures
-        WHERE id = $1`,
-        [sig_id]
+        WHERE id = $1 AND petition_id = $2`,
+        [sig_id, pet_id]
     );
-}
+};
 
-module.exports.removeSignature2 = function(sig_id) {
-    return db.query(
-        `DELETE FROM signatures2
-        WHERE id = $1`,
-        [sig_id]
-    );
-}
-
-module.exports.getSigners = function() {
-    return db.query(
-        `SELECT users.first AS first, users.last AS last, user_profiles.age AS age, user_profiles.city AS city, user_profiles.url AS url
-        FROM signatures
-        LEFT JOIN users
-        ON signatures.user_id = users.id
-        LEFT JOIN user_profiles
-        ON signatures.user_id = user_profiles.user_id`
-    );
-}
-
-module.exports.getSignersCity = function(city) {
+module.exports.getSigners = function(petition_id) {
     return db.query(
         `SELECT users.first AS first, users.last AS last, user_profiles.age AS age, user_profiles.city AS city, user_profiles.url AS url
         FROM signatures
@@ -61,62 +34,42 @@ module.exports.getSignersCity = function(city) {
         ON signatures.user_id = users.id
         LEFT JOIN user_profiles
         ON signatures.user_id = user_profiles.user_id
-        WHERE LOWER(city) = LOWER($1)`,
-        [city]
+        WHERE signatures.petition_id = $1`,
+        [petition_id]
     );
-}
+};
 
-module.exports.getSigners2 = function() {
+module.exports.getSignersCity = function(city, petition_id) {
     return db.query(
         `SELECT users.first AS first, users.last AS last, user_profiles.age AS age, user_profiles.city AS city, user_profiles.url AS url
-        FROM signatures2
+        FROM signatures
         LEFT JOIN users
-        ON signatures2.user_id = users.id
+        ON signatures.user_id = users.id
         LEFT JOIN user_profiles
-        ON signatures2.user_id = user_profiles.user_id`
+        ON signatures.user_id = user_profiles.user_id
+        WHERE LOWER(city) = LOWER($1) AND signatures.petition_id = $2`,
+        [city, petition_id]
     );
-}
+};
 
-module.exports.getSignersCity2 = function(city) {
-    return db.query(
-        `SELECT users.first AS first, users.last AS last, user_profiles.age AS age, user_profiles.city AS city, user_profiles.url AS url
-        FROM signatures2
-        LEFT JOIN users
-        ON signatures2.user_id = users.id
-        LEFT JOIN user_profiles
-        ON signatures2.user_id = user_profiles.user_id
-        WHERE LOWER(city) = LOWER($1)`,
-        [city]
-    );
-}
-
-module.exports.getSignature = function(sig_id) {
+module.exports.getSignature = function(sig_id, petition_id) {
     return db.query(
         `SELECT sig
         FROM signatures
-        WHERE id = $1`,
-        [sig_id]
+        WHERE id = $1 AND petition_id = $2`,
+        [sig_id, petition_id]
     );
-}
+};
 
-module.exports.getSignature2 = function(sig_id) {
-    return db.query(
-        `SELECT sig
-        FROM signatures2
-        WHERE id = $1`,
-        [sig_id]
-    );
-}
-
-module.exports.getSigId = function(user_id) {
-    console.log(user_id, typeof user_id);
+module.exports.getSigId = function(user_id, petition_id) {
+    console.log('query is being fetched');
     return db.query(
         `SELECT id
         FROM signatures
-        WHERE user_id = $1`,
-        [user_id]
+        WHERE user_id = $1 AND petition_id = $2`,
+        [user_id, petition_id]
     );
-}
+};
 
 module.exports.registerUser = function(first, last, email, hashedPassword) {
     return db.query(
@@ -125,20 +78,18 @@ module.exports.registerUser = function(first, last, email, hashedPassword) {
         RETURNING *`,
         [first, last, email, hashedPassword]
     );
-}
+};
 
 module.exports.getUserInfo = function(email) {
     return db.query(
-        `SELECT users.first AS first, users.last AS last, users.id AS id, users.email AS email, users.password AS password, signatures.id AS sig_id, signatures2.id AS sig_id2
+        `SELECT users.first AS first, users.last AS last, users.id AS id, users.email AS email, users.password AS password
         FROM users
         LEFT JOIN signatures
         ON users.id = signatures.user_id
-        LEFT JOIN signatures2
-        ON users.id = signatures2.user_id
         WHERE email = $1`,
         [email]
     );
-}
+};
 
 module.exports.getProfileInfo = function(id) {
     return db.query(
@@ -149,7 +100,7 @@ module.exports.getProfileInfo = function(id) {
         WHERE users.id = $1`,
         [id]
     );
-}
+};
 
 module.exports.getPassword = function(user_id) {
     return db.query(
@@ -158,7 +109,7 @@ module.exports.getPassword = function(user_id) {
         WHERE id = $1`,
         [user_id]
     );
-}
+};
 
 module.exports.updateUserWithPassword = function(first, last, email, hashedPassword, user_id) {
     return db.query(
@@ -167,7 +118,7 @@ module.exports.updateUserWithPassword = function(first, last, email, hashedPassw
         WHERE id = $5`,
         [first, last, email, hashedPassword, user_id]
     );
-}
+};
 
 module.exports.updateUserWithoutPassword = function(first, last, email, user_id) {
     return db.query(
@@ -176,7 +127,7 @@ module.exports.updateUserWithoutPassword = function(first, last, email, user_id)
         WHERE id = $4`,
         [first, last, email, user_id]
     );
-}
+};
 
 module.exports.updateProfile = function(age, city, homepage, user_id) {
     return db.query(
@@ -186,7 +137,7 @@ module.exports.updateProfile = function(age, city, homepage, user_id) {
         DO UPDATE SET age = $1, city = $2, url = $3`,
         [age ? Number(age) : null || null, city || null, homepage || null, user_id]
     );
-}
+};
 
 module.exports.deleteSignatureRow = function(user_id) {
     return db.query(
@@ -194,7 +145,7 @@ module.exports.deleteSignatureRow = function(user_id) {
         WHERE user_id = $1`,
         [user_id]
     );
-}
+};
 
 module.exports.deleteProfileRow = function(user_id) {
     return db.query(
@@ -202,7 +153,7 @@ module.exports.deleteProfileRow = function(user_id) {
         WHERE user_id = $1`,
         [user_id]
     );
-}
+};
 
 module.exports.deleteUserRow = function(user_id) {
     return db.query(
@@ -210,4 +161,4 @@ module.exports.deleteUserRow = function(user_id) {
         WHERE id = $1`,
         [user_id]
     );
-}
+};

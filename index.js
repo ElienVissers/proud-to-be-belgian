@@ -6,7 +6,7 @@ const bcrypt = require('./bcrypt');
 const security = require('./security');
 const cookieSession = require('cookie-session');
 const csurf = require('csurf');
-const {requireLoggedOutUser, requireSignature, requireNoSignature, requireSignature2, requireNoSignature2} = require('./middleware');
+const {requireLoggedOutUser, requireSignature, requireNoSignature} = require('./middleware');
 
 
 app.engine('handlebars', hb());
@@ -35,6 +35,10 @@ app.use(function(req, res, next) {
     }
 });
 
+app.get('/', (req, res) => {
+    res.redirect('/register');
+});
+
 app.get('/register', requireLoggedOutUser, (req, res) => {
     res.render('registerTemplate', {
         layout: 'main'
@@ -48,6 +52,7 @@ app.post('/register', requireLoggedOutUser, (req, res) => {
         req.session.userId = rows[0].id;
         req.session.first = rows[0].first;
         req.session.last = rows[0].last;
+        req.session.signatureId = {};
         res.redirect('/profile');
     }).catch(function(err) {
         console.log("error in registration: ", err);
@@ -67,10 +72,11 @@ app.get('/profile', (req, res) => {
 
 app.post('/profile', (req, res) => {
     security.checkUrl(req.body.homepage).then(url => {
-        db.updateProfile(req.body.age, req.body.city, url, req.session.userId)
+        db.updateProfile(req.body.age, req.body.city, url, req.session.userId);
     }).then(() => {
         res.redirect('/home');
     }).catch(err => {
+        console.log(err);
         res.render('profileTemplate', {
             error: true,
             name: req.session.first,
@@ -141,7 +147,7 @@ app.post('/profile/edit', (req, res) => {
                 ]).then(() => {
                     req.session.first = req.body.first;
                     req.session.last = req.body.last;
-                    res.redirect('/home')
+                    res.redirect('/home');
                 }).catch(err => {
                     errorDisplay(err);
                 });
@@ -153,7 +159,7 @@ app.post('/profile/edit', (req, res) => {
             ]).then(() => {
                 req.session.first = req.body.first;
                 req.session.last = req.body.last;
-                res.redirect('/home')
+                res.redirect('/home');
             }).catch(err => {
                 errorDisplay(err);
             });
@@ -174,22 +180,32 @@ app.post('/login', requireLoggedOutUser, (req, res) => {
         req.session.userId = dbInfo.rows[0].id;
         req.session.first = dbInfo.rows[0].first;
         req.session.last = dbInfo.rows[0].last;
-        if (dbInfo.rows[0].sig_id) {
-            req.session.signatureId = dbInfo.rows[0].sig_id;
-        }
-        if (dbInfo.rows[0].sig_id2) {
-            req.session.signatureId2 = dbInfo.rows[0].sig_id2;
-        }
+        req.session.signatureId = {};
         if (dbInfo.rows[0].password) {
             return bcrypt.compare(req.body.password, dbInfo.rows[0].password);
-        } //if not, they need to register first
+        }
     }).then(() => {
-        res.redirect('/home');
-    }).catch(function(err) {
-        console.log(err);
-        res.render('loginTemplate', {
-            error: true,
-            layout: 'main'
+        Promise.all([
+            db.getSigId(req.session.userId, 1),
+            db.getSigId(req.session.userId, 2)
+        ]).then(results => {
+            console.log("results.rows: ", results.rows);
+            if (results.rows) {
+                // if (results.rows[0]. id from petition 1) {
+                //     req.session.signatureId[1] = id from petition 1;
+                // }
+                // if (results.rows[0]. id from petition 2) {
+                //     req.session.signatureId[2] = id from petition 2;
+                // }
+            }
+        }).then(() => {
+            res.redirect('/home');
+        }).catch(function(err) {
+            console.log(err);
+            res.render('loginTemplate', {
+                error: true,
+                layout: 'main'
+            });
         });
     });
 });
@@ -199,137 +215,100 @@ app.get('/home', (req, res) => {
         error: true,
         layout: 'main'
     });
-})
-
-app.get('/petition', requireNoSignature, (req, res) => {
-    res.render('mainTemplate', {
-        layout: 'main'
-    });
 });
 
-app.post('/petition', requireNoSignature, (req, res) => {
-    db.addSignature(req.body.sig, req.session.userId).then(function({rows}) {
-        req.session.signatureId = rows[0].id;
-        res.redirect('/thankyou');
-    }).catch(function(err) {
-        console.log(err);
-        res.render('mainTemplate', {
-            error: true,
+app.get('/petition/:id', requireNoSignature, (req, res) => {
+    if (req.params.id == 1) {
+        res.render('mainTemplate1', {
             layout: 'main'
         });
-    });
-});
-
-//////////////////////////////////////////////////////////////////////////////// PETITION 2
-app.get('/petition2', requireNoSignature2, (req, res) => {
-    res.render('mainTemplate2', {
-        layout: 'main'
-    });
-});
-
-app.post('/petition2', requireNoSignature2, (req, res) => {
-    db.addSignature2(req.body.sig, req.session.userId).then(function({rows}) {
-        req.session.signatureId2 = rows[0].id;
-        res.redirect('/thankyou2');
-    }).catch(function(err) {
-        console.log(err);
+    } else if (req.params.id == 2){
         res.render('mainTemplate2', {
+            layout: 'main'
+        });
+    }
+
+});
+
+app.post('/petition/:id', requireNoSignature, (req, res) => {
+    db.addSignature(req.body.sig, req.session.userId, req.params.id).then(function({rows}) {
+        req.session.signatureId[req.params.id] = rows[0].id;
+        res.redirect('/thankyou/' + req.params.id);
+    }).catch(function(err) {
+        console.log(err);
+        res.render('mainTemplate' + req.params.id, {
             error: true,
             layout: 'main'
         });
     });
 });
-////////////////////////////////////////////////////////////////////////////////
 
-app.get('/thankyou', requireSignature, (req, res) => {
-    db.getSignature(req.session.signatureId).then(function(sig) {
-        res.render('thankyouTemplate', {
-            signature: sig.rows[0].sig,
-            name: req.session.first,
-            layout: 'main'
-        });
+app.get('/thankyou/:id', requireSignature, (req, res) => {
+    db.getSignature(req.session.signatureId[req.params.id], req.params.id).then(function(sig) {
+        if (req.params.id == 1) {
+            res.render('thankyouTemplate', {
+                signature: sig.rows[0].sig,
+                name: req.session.first,
+                layout: 'main'
+            });
+        } else if (req.params.id == 2) {
+            res.render('thankyouTemplate2', {
+                signature: sig.rows[0].sig,
+                name: req.session.first,
+                layout: 'main'
+            });
+        }
     }).catch(function(err) {
         console.log(err);
     });
 });
 
-app.post('/thankyou', (req, res) => {
-    db.removeSignature(req.session.signatureId).then(() => {
-        req.session.signatureId = null;
+app.post('/thankyou/:id', (req, res) => {
+    db.removeSignature(req.session.signatureId, req.params.id).then(() => {
+        delete req.session.signatureId[req.params.id];
     }).then(() => {
         res.redirect('/home');
     }).catch(err => {
         console.log("error when removing signature: ", err);
-    })
-});
-
-//////////////////////////////////////////////////////////////////////////////// THANK YOU 2
-app.get('/thankyou2', requireSignature2, (req, res) => {
-    db.getSignature2(req.session.signatureId2).then(function(sig) {
-        res.render('thankyouTemplate2', {
-            signature: sig.rows[0].sig,
-            name: req.session.first,
-            layout: 'main'
-        });
-    }).catch(function(err) {
-        console.log(err);
     });
 });
 
-app.post('/thankyou2', (req, res) => {
-    db.removeSignature2(req.session.signatureId2).then(() => {
-        req.session.signatureId2 = null;
-    }).then(() => {
-        res.redirect('/home');
-    }).catch(err => {
-        console.log("error when removing signature2: ", err);
-    })
-});
-////////////////////////////////////////////////////////////////////////////////
-
-app.get('/signers', requireSignature, (req, res) => {
-    db.getSigners().then(function(signers) {
-        res.render('signersTemplate', {
-            signers: signers.rows,
-            layout: 'main'
-        });
-    });
-});
-
-app.get('/signers/:city', requireSignature, (req, res) => {
-    const city = req.params.city;
-    db.getSignersCity(city).then(function(signers) {
-        res.render('signersTemplate', {
-            layout: 'main',
-            signers: signers.rows,
-            titleCity: city
-        });
-    });
-});
-
-//////////////////////////////////////////////////////////////////////////////// SIGNERS 2
-app.get('/signers2', requireSignature2, (req, res) => {
-    db.getSigners2().then(function(signers) {
-        res.render('signersTemplate2', {
-            signers: signers.rows,
-            layout: 'main'
-        });
+app.get('/signers/:id', requireSignature, (req, res) => {
+    db.getSigners(req.params.id).then(function(signers) {
+        if (req.params.id == 1) {
+            res.render('signersTemplate', {
+                signers: signers.rows,
+                layout: 'main'
+            });
+        } else if (req.params.id == 2) {
+            res.render('signersTemplate2', {
+                signers: signers.rows,
+                layout: 'main'
+            });
+        }
     }).catch(err => {
         console.log(err);
     });
 });
 
-app.get('/signers2/:city', requireSignature2, (req, res) => {
+app.get('/signers/:id/:city', requireSignature, (req, res) => {
     const city = req.params.city;
-    db.getSignersCity2(city).then(function(signers) {
-        res.render('signersTemplate2', {
-            layout: 'main',
-            signers: signers.rows,
-            titleCity: city
-        });
+    db.getSignersCity(city, req.params.id).then(function(signers) {
+        if (req.params.id == 1) {
+            res.render('signersTemplate', {
+                layout: 'main',
+                signers: signers.rows,
+                titleCity: city
+            });
+        } else if (req.params.id == 2) {
+            res.render('signersTemplate2', {
+                layout: 'main',
+                signers: signers.rows,
+                titleCity: city
+            });
+        }
     });
 });
-////////////////////////////////////////////////////////////////////////////////
 
 app.get('/logout', (req, res) => {
     req.session = null;

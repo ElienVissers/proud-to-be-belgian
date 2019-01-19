@@ -9,6 +9,7 @@
 
 <form method="post">
     <input name="sig" id="sig" type="hidden">
+    <input type="hidden" name="petitionId" value="{{id}}">
     <input name="_csrf" type="hidden" value="{{csrfToken}}"> <!--to protect against csrf attacks, have a hidden input with this name+value in EACH form-->
     <br>
     <canvas id="canvas" width="340" height="70"></canvas>

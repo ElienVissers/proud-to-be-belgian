@@ -7,6 +7,7 @@ body {
     margin: 0;
     min-height: 100vh;
     font-family: "Helvetica Neue";
+    font-weight: lighter;
     display: flex;
     flex-direction: column;
 }
@@ -119,9 +120,16 @@ header .red {
 }
 
 h1 {
+    font-family: arial;
+    font-weight: normal;
     color: black;
     font-size: 5rem;
     margin: 40px 0 30px 0;
+}
+
+h2 {
+    font-family: arial;
+    font-weight: lighter;
 }
 
 ul {
