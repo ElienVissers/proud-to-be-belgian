@@ -169,7 +169,6 @@ app.get('/login', requireLoggedOutUser, (req, res) => {
     });
 });
 
-///////////////////////////////////////// TO DO //////////////////////////////////////////////////////// also set cookie for 2nd signature if exists
 app.post('/login', requireLoggedOutUser, (req, res) => {
     db.getUserInfo(req.body.email).then(dbInfo => {
         req.session.userId = dbInfo.rows[0].id;
@@ -177,6 +176,9 @@ app.post('/login', requireLoggedOutUser, (req, res) => {
         req.session.last = dbInfo.rows[0].last;
         if (dbInfo.rows[0].sig_id) {
             req.session.signatureId = dbInfo.rows[0].sig_id;
+        }
+        if (dbInfo.rows[0].sig_id2) {
+            req.session.signatureId2 = dbInfo.rows[0].sig_id2;
         }
         if (dbInfo.rows[0].password) {
             return bcrypt.compare(req.body.password, dbInfo.rows[0].password);

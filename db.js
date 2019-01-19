@@ -129,10 +129,12 @@ module.exports.registerUser = function(first, last, email, hashedPassword) {
 
 module.exports.getUserInfo = function(email) {
     return db.query(
-        `SELECT users.first AS first, users.last AS last, users.id AS id, users.email AS email, users.password AS password, signatures.id AS sig_id
+        `SELECT users.first AS first, users.last AS last, users.id AS id, users.email AS email, users.password AS password, signatures.id AS sig_id, signatures2.id AS sig_id2
         FROM users
         LEFT JOIN signatures
         ON users.id = signatures.user_id
+        LEFT JOIN signatures2
+        ON users.id = signatures2.user_id
         WHERE email = $1`,
         [email]
     );

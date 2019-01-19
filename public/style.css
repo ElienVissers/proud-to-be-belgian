@@ -1,24 +1,36 @@
-body {
-    background-color: #FFC739;
-    margin: 0;
-    font-family: "Helvetica Neue";
+* {
+    box-sizing: border-box;
 }
 
-.mainContent {
-    font-size: 1.2rem;
+body {
+    /* background-color: #FFC739; */
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Helvetica Neue";
+    display: flex;
+    flex-direction: column;
 }
 
 header {
+    align-self: stretch;
+    padding: 0;
+    margin: 0;
+    z-index: 5;
+    top: 0;
+    font-family: arial;
+}
+
+header .colors {
     display: flex;
     width: 100%;
 }
 
-header div {
+header .colors div {
     height: 50px;
     width: 33.33%;
 }
 
-header div p {
+header .colors div p {
     color: #FFC739;
     font-weight: bold;
     text-align: center;
@@ -26,7 +38,7 @@ header div p {
 
 .logoutImg, .editImg {
     margin: 0;
-    height: 75%;
+    height: 75% !important;
     width: auto;
     top: 7px;
 }
@@ -58,12 +70,12 @@ header div p {
     visibility: visible;
 }
 
-header div .rightIcons {
+header .colors div .rightIcons {
     position: relative;
     float: right;
 }
 
-header div img {
+header .colors div img {
     float: right;
     position: relative;
     top: 7px;
@@ -92,6 +104,7 @@ header .red {
 
 #flag {
     cursor: pointer;
+    margin-right: 40px;
 }
 
 #flag:active {
@@ -99,16 +112,16 @@ header .red {
 }
 
 .funFact {
-    background-color: #FF3A2C;
-    border: 1px solid black;
-    color: black;
-    font-weight: bold;
-    font-size: 1.3rem;
+    border: 1px solid #FF3A2C;
+    color: #FF3A2C;
+    font-size: 1.2rem;
+    margin: 40px 20px 20px 20px;
 }
 
 h1 {
-    text-decoration: underline;
-    text-decoration-color: #FF3A2C;
+    color: black;
+    font-size: 5rem;
+    margin: 40px 0 30px 0;
 }
 
 ul {
@@ -116,12 +129,35 @@ ul {
     padding: 0;
 }
 
+.bigTextDiv {
+    font-family: arial;
+    background-color: #FFC739;
+    background-image: url(brussels.png);
+    background-position: bottom;
+    background-repeat: no-repeat;
+    color: black;
+    width: 100%;
+    text-align: center;
+}
+
+#p1 {
+    font-size: 8vw;
+    margin: 0;
+    position: relative;
+    top: 70px;
+}
+
+#p2 {
+    font-size: 12vw;
+    margin: 30px 0 0 0;
+}
+
 .mainContent {
+    font-size: 1.2rem;
     text-align: center;
     width: 60%;
-    margin: 0 auto;
-    position: relative;
-    top: 50px;
+    align-self: center;
+    flex-grow: 1;
 }
 
 .mainContent p {
@@ -134,8 +170,7 @@ ul {
 }
 
 .mainContent form {
-    position: relative;
-    top: 50px;
+    margin: 50px 0 0 0;
 }
 
 .mainContent input {
@@ -148,15 +183,13 @@ input::placeholder {
 
 .mainContent canvas {
     border: 1px dotted #FF3A2C;
-    position: relative;
-    top: 20px;
+    margin: 20px 0 0 0;
     width: 340px;
     height: 70px;
 }
 
 .mainContent .submitButton {
-    position: relative;
-    top: 30px;
+    margin-top: 30px;
     font-size: 1.3rem;
     background-color: #E87928;
     border: 1px solid #FF3A2C;
@@ -170,8 +203,7 @@ input::placeholder {
 
 .error {
     color: #FF3A2C;
-    position: relative;
-    top: 20px;
+    margin-top: 20px;
 }
 
 .signatureImg {
@@ -181,4 +213,14 @@ input::placeholder {
 .editInput {
     display: block;
     margin: 20px auto;
+}
+
+footer {
+    background-color: #FFC739;
+    text-align: center;
+    width: 100%;
+    margin: 20px auto 0 auto;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 5px 0;
 }
