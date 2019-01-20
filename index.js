@@ -189,18 +189,15 @@ app.post('/login', requireLoggedOutUser, (req, res) => {
             db.getSigId(req.session.userId, 1),
             db.getSigId(req.session.userId, 2)
         ]).then(results => {
-            console.log("results.rows: ", results.rows);
-            if (results.rows) {
-                // if (results.rows[0]. id from petition 1) {
-                //     req.session.signatureId[1] = id from petition 1;
-                // }
-                // if (results.rows[0]. id from petition 2) {
-                //     req.session.signatureId[2] = id from petition 2;
-                // }
+            for (let i = 0; i < results.length; i++) {
+                if (results[i].rows[0]) {
+                    req.session.signatureId[i +1] = results[i].rows[0].sig_id;
+                }
             }
         }).then(() => {
             res.redirect('/home');
         }).catch(function(err) {
+            req.session = null;
             console.log(err);
             res.render('loginTemplate', {
                 error: true,
@@ -211,10 +208,43 @@ app.post('/login', requireLoggedOutUser, (req, res) => {
 });
 
 app.get('/home', (req, res) => {
-    res.render('homeTemplate', {
-        error: true,
-        layout: 'main'
-    });
+    let petitions = [];
+    if (Object.keys(req.session.signatureId).length != 0) {
+        var numSig = Object.keys(req.session.signatureId).length;
+        var promArr = [];
+        for (let i = 0; i < numSig; i++) {
+            promArr.push(db.getPetitionName(Object.keys(req.session.signatureId)[i]));
+        }
+        Promise.all(promArr).then(results => {
+            return new Promise(function(resolve) {
+                for (var j = 0; j < results.length; j++) {
+                    petitions.push(results[j].rows[0].topic);
+                }
+                if (j == results.length) {
+                    resolve();
+                }
+            }).then(() => {
+                console.log('signed = true');
+                console.log('petitions: ', petitions);
+                res.render('homeTemplate', {
+                    signed: true,
+                    petitions: petitions,
+                    layout: 'main'
+                });
+            });
+        }).catch(err => {
+            console.log('error in promise.all: ', err);
+        });
+    } else {
+        console.log('signed = false');
+        res.render('homeTemplate', {
+            signed: false,
+            petitions: petitions,
+            layout: 'main'
+        });
+    }
+    // array of petition ids: Object.keys(req.session.signatureId)
+    // loop through it: Object.keys(req.session.signatureId)[i]
 });
 
 app.get('/petition/:id', requireNoSignature, (req, res) => {
@@ -264,7 +294,7 @@ app.get('/thankyou/:id', requireSignature, (req, res) => {
 });
 
 app.post('/thankyou/:id', (req, res) => {
-    db.removeSignature(req.session.signatureId, req.params.id).then(() => {
+    db.removeSignature(req.session.signatureId[req.params.id], req.params.id).then(() => {
         delete req.session.signatureId[req.params.id];
     }).then(() => {
         res.redirect('/home');

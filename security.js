@@ -9,6 +9,5 @@ module.exports.checkUrl = function(url) {
         } else {
             reject(new Error);
         }
-    })
-
-}
+    });
+};

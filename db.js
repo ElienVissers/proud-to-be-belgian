@@ -9,6 +9,15 @@ if (process.env.DATABASE_URL) {
 }
 
 
+module.exports.getPetitionName = function(petition_id) {
+    return db.query(
+        `SELECT topic
+        FROM petitions
+        WHERE id = $1`,
+        [petition_id]
+    );
+};
+
 module.exports.addSignature = function(sig, userId, petitionId) {
     return db.query(
         `INSERT INTO signatures (sig, user_id, petition_id)
@@ -62,9 +71,8 @@ module.exports.getSignature = function(sig_id, petition_id) {
 };
 
 module.exports.getSigId = function(user_id, petition_id) {
-    console.log('query is being fetched');
     return db.query(
-        `SELECT id
+        `SELECT id AS sig_id
         FROM signatures
         WHERE user_id = $1 AND petition_id = $2`,
         [user_id, petition_id]

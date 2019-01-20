@@ -6,3 +6,13 @@
     <br>
     <li><a href="/petition/2">#MakeBeerglassesUsefulAgain</a></li>
 </ul>
+
+
+{{#if signed}}
+    <br>
+    <p>You have already signed the following petition(s):</p>
+        <ul>{{#petitions}}
+            <li>{{.}}</li>
+        {{/ petitions}}</ul>
+    <br>
+{{/if}}
