@@ -1,7 +1,5 @@
 # Proud to be Belgian
 
-<img src="public/flag.png" width=100 height=100>
-
 Proud to be Belgian is a petition website, written in JavaScript with [handlebars](https://handlebarsjs.com/), where people can sign one or more petitions to make Belgium great again!
 
 An active deployment via Heroku can be found [here](https://proudtobebelgian.herokuapp.com/).
